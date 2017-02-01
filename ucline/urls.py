@@ -19,15 +19,8 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from rest_framework import routers
 from redsocial.views import *
 
-router = routers.DefaultRouter()
-router.register(r'user', UserViewSet)
-router.register(r'timeline', TimelineViewSet)
-
-router.register(r'comment', CommentViewSet)
-router.register(r'resource', ResourceViewSet)
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^entities/', include(router.urls)),
     url(r'^', include('redsocial.urls')),
 ]
 
