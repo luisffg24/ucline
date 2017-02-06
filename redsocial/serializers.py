@@ -16,14 +16,25 @@ class OwnerSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'name')
 
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ('id', 'created', 'content', 'url', 'post', 'owner')
+        ordering = ('-created',)
+
+        def user(self, instance):
+            return reverse('user', kwargs={'username':instance.username})
+        #
+        def post(self, instance):
+            return reverse('post', kwargs={'id':instance.post.id})
+
 
 class TimelineSerializer(serializers.ModelSerializer):
     owner = OwnerSerializer()
-   # like = LikesSerializer.PrimaryKeyRelatedField(write_only=True, queryset=Like_Post.objects.all(), source='owner')
-    #comments = CommentSerializer(many=True, read_only=True, source='comment_set')
+    comments = CommentSerializer(many=True, read_only=True, source='comment')
     class Meta:
         model = Post
-        fields = ('id', 'created', 'content', 'url', 'owner', 'comments', 'likes', 'resources',)
+        fields = ('id', 'created', 'content', 'url', 'owner', 'comments', 'likes', 'resources')
         ordering = ('-created',)
 
         #         def owner(self, instance):
@@ -31,14 +42,16 @@ class TimelineSerializer(serializers.ModelSerializer):
 
 # return reverse('user', kwargs={'username':instance.username})
 
+class RegisterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
 
 
-
-# class PostSerializer(serializers.HyperlinkedModelSerializer):
-#     class Meta:
-#         model = Post
-#         fields = ('id','created', 'content', 'url', 'comments', 'resources', 'owner', )
-#         ordering = ('-created',)
+class PostSerializer(serializers.HyperlinkedModelSerializer):
+     class Meta:
+         model = Post
+         fields = ('id','created', 'content', 'url', 'comments', 'resources', 'owner', )
+         ordering = ('-created',)
 
 class ResourceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -53,35 +66,23 @@ class ResourceSerializer(serializers.ModelSerializer):
 #         def user(self, instance):
 #                 return reverse('user', kwargs={'username':instance.username})
 
-class CommentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Comment
-        fields = ('id', 'created', 'content', 'url', 'post', 'owner')
-        ordering = ('-created',)
-
-        #         def user(self, instance):
-        #                 return reverse('user', kwargs={'username':instance.username})
-        #
-        #         def post(self, instance):
-        #                 return reverse('post', kwargs={'id':instance.post.id})
 
 
 #
 # *******************************************************************
 #
 
-
-
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ('owner', 'nombre', 'apellido', 'telefono', 'direccion', 'fecha_nacimiento', )
+        fields = ('owner', 'nombre', 'apellido', 'telefono', 'direccion',\
+                  'fecha_nacimiento' )
 
 
 class Area_ConocimientoSeriaizer(serializers.ModelSerializer):
     class Meta:
         model = Area_Conocimiento
-        fields =('id', 'nombre', 'descripcion', )
+        fields =('id', 'nombre', 'descripcion' )
 
 class CanalSerializer(serializers.ModelSerializer):
     class Meta:
