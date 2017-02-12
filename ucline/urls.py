@@ -26,6 +26,13 @@ comment_creation = views.PostViewSet.as_view({
     'post': 'set_comment'
 })
 
+profile_retrive = views.ProfileViewsSet.as_view({
+    'get': 'retrieve',
+    'put': 'update',
+    'patch': 'partial_update',
+    'delete': 'destroy'
+})
+
 router = routers.DefaultRouter()
 router.register(r'user', UserViewSet)
 router.register(r'timeline', TimelineViewSet)
