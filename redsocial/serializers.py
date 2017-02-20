@@ -1,7 +1,7 @@
 
 from django.core.urlresolvers import reverse
 from redsocial.models import Post, Comment, Resource, User, Profile, Area_Conocimiento,\
-                                 Canal, Like_Post, Interes
+                            Canal, Like_Post, Interes, Follow
 from rest_framework import routers, serializers, viewsets
 from rest_framework.relations import SlugRelatedField
 
@@ -128,3 +128,17 @@ class CanalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Canal
         fields = ('id', 'nombre', 'descripcion','created', 'owner', 'miembro', 'areaconocimientos', 'postcanal')
+
+class FollowSerializer(serializers.ModelSerializer):
+    following =  OwnerSerializer()
+
+    class Meta:
+        model = Follow    
+        fields = ('following','created','follower',)    
+        ordering = ('-created',)    
+        
+        def following(self, instance):    
+            return reverse('user', kwargs={'username':instance.username})
+
+
+
