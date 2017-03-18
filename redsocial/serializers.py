@@ -1,13 +1,15 @@
 
 from django.core.urlresolvers import reverse
 from redsocial.models import Post, Comment, Resource, User, Profile, Area_Conocimiento,\
-                            Canal, Like_Post, Interes, Follow
+                            Canal, Like_Post, Interes, Follow, Permiso
 from rest_framework import routers, serializers, viewsets
 from rest_framework.relations import SlugRelatedField
 
 #
 # *****************************PROFILE SERIALIZER'S**************************************
 #
+
+
 class Area_ConocimientoSeriaizer(serializers.ModelSerializer):
     class Meta:
         model = Area_Conocimiento
@@ -19,22 +21,27 @@ class InteresesSerializer(serializers.ModelSerializer):
         fields = ('interes')
 
 
-class ProfileSerializer(serializers.ModelSerializer):
-    #  intereses = InteresesSerializer()
+class PermisoSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Profile
-        fields = ('owner', 'nombre', 'apellido', 'telefono', 'direccion',\
-                  'fecha_nacimiento', 'conocimientos')
+        model = Permiso
+        fields = ('id', 'nombre', 'tipo')
 
 
 class UserSerializer(serializers.ModelSerializer):
+    #conocimientos = Area_ConocimientoSeriaizer(many=True, read_only=True)
+    password = serializers.CharField(write_only=True)
     class Meta:
         model = User
-        fields = ('username', 'email', 'name', 'avatar')
+        fields = ('username', 'password', 'email', 'name', 'avatar', 'conocimientos', 'permiso')
         ordering = ('-created',)
 
-#
-# *****************************POST SERIALIZER'S**************************************
+class ProfileSerializer(serializers.ModelSerializer):
+    intereses = InteresesSerializer(many=False)
+    #owner = UserSerializer(many=False, read_only=True)
+    class Meta:
+        model = Profile
+        fields = ('owner', 'nombre', 'apellido', 'telefono', 'direccion',\
+                  'fecha_nacimiento', 'intereses' )
 #
 
 class OwnerSerializer(serializers.ModelSerializer):
@@ -42,7 +49,12 @@ class OwnerSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'name', 'avatar')
 
+# *****************************POST SERIALIZER'S**************************************
+#
 class CommentSerializer(serializers.ModelSerializer):
+    owner = OwnerSerializer(many=False, read_only=True)
+    ownerId = serializers.PrimaryKeyRelatedField(write_only=True, queryset=User.objects.all(), source='owner')
+
     class Meta:
         model = Comment
         fields = ('created', 'content', 'url', 'post', 'owner')
@@ -61,30 +73,31 @@ class LikesSerializer(serializers.ModelSerializer):
 
 
 class ResourceSerializer(serializers.ModelSerializer):    
+
     class Meta:
         model = Resource    
-        fields = ('created', 'content', 'url', 'post', 'content_type')    
+        fields = ('post', 'imagenes', 'audio', 'video', 'url_compartido')  #Post-recurso 
         ordering = ('-created',)
 
  
 class PostSerializer(serializers.ModelSerializer):
-    comments = serializers.SlugRelatedField(
-        many=True,
-        read_only=True,
-        slug_field='comments'
-    )    
-    resources = ResourceSerializer(many=False)
+    owner = OwnerSerializer(many=False, read_only=True)
+    ownerId = serializers.PrimaryKeyRelatedField(write_only=True, queryset=User.objects.all(), source='owner')
+    comments = CommentSerializer(many=True, read_only=True, source='comment_set')
+    likespost = LikesSerializer(many=True, read_only=True)
+    #resources = ResourceSerializer(many=False, read_only=True)
+
     class Meta:
         model  = Post
-        fields = ('created', 'content', 'status', 'url', 'resources',\
-                 'owner', 'likespost', 'comments')
+        fields = ('id', 'created', 'content', 'status', 'url', \
+                 'owner', 'ownerId', 'likespost', 'comments',)
         ordering = ('-created',)
 
 
 class TimelineSerializer(serializers.ModelSerializer):
     posts = PostSerializer()
     class Meta:
-        #model = Post
+        model = Post
         fields = ('posts')
         #fields = ('id', 'created', 'content', 'url', 'owner', 'comment', 'likes', 'resources')
         #ordering = ('-created',)
@@ -111,16 +124,6 @@ class PostCanalSerializer(serializers.ModelSerializer):
     post = PostSerializer()
 
 
-"""class CanalSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Canal 
-        fields = ('id', 'nombre', 'descripcion', 'created', 'owner', 'miembro', 'postcanal')
-     miembros = serializers.SlugRelatedField(
-        many=True,
-        read_only=True,
-        slug_field='miembro'
-    )"""
-
 class CanalSerializer(serializers.ModelSerializer):
     
     postcanal = PostSerializer(many=True, read_only=True, source='set_post')
@@ -137,8 +140,8 @@ class FollowSerializer(serializers.ModelSerializer):
         fields = ('following','created','follower',)    
         ordering = ('-created',)    
         
-        def following(self, instance):    
-            return reverse('user', kwargs={'username':instance.username})
+        #def following(self, instance):    
+        #   return reverse('User', kwargs={'username':instance.username})
 
 
 

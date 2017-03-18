@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
-
+from django.core.urlresolvers import reverse_lazy
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -57,7 +57,7 @@ ROOT_URLCONF = 'ucline.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR,'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -128,8 +128,16 @@ USE_TZ = True
 
 STATIC_URL = '/public/' 
 
+LOGIN_REDIRECT_URL=reverse_lazy('redsocial:index')
+
+MEDIA_ROOT = '/home/upload/' #os.path.join(BASE_DIR, 'media')
+
+MEDIA_URL = '/media/'
+
+STATIC_ROOT = os.path.join(BASE_DIR, "/static/")
+
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'public'),
+    os.path.join(BASE_DIR, 'static'),
     
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
